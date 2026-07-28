@@ -34,7 +34,7 @@ const PRIZE_TIERS_TEMPLATE = [
 ];
 
 // In-Memory Database
-let currentRoundId = 126;
+let currentRoundId = 132; // Starting at 132 to match your backend logs
 const roundsMap = new Map();
 
 // Helper to construct a brand new active round
@@ -77,17 +77,17 @@ function createSettledRound(id) {
     top_prize_amount: { amount: "9343072", decimals: 6 },
     top_prize_winners_count: 4,
     lp_earnings: { amount: "1338845285", decimals: 6 },
-    started_at: new Date(Date.now() - (127 - id) * ROUND_DURATION_MS).toISOString(),
-    ended_at: new Date(Date.now() - (126 - id) * ROUND_DURATION_MS).toISOString(),
-    settled_at: new Date(Date.now() - (126 - id) * ROUND_DURATION_MS + 5000).toISOString(),
+    started_at: new Date(Date.now() - (currentRoundId + 1 - id) * ROUND_DURATION_MS).toISOString(),
+    ended_at: new Date(Date.now() - (currentRoundId - id) * ROUND_DURATION_MS).toISOString(),
+    settled_at: new Date(Date.now() - (currentRoundId - id) * ROUND_DURATION_MS + 5000).toISOString(),
     ball_pool: { normals_max: 30, bonusball_max: 10 },
     winning_numbers: WINNING_NUMBERS,
     prize_tiers: PRIZE_TIERS_TEMPLATE
   };
 }
 
-// Initialize seed data (Rounds 1 to 125)
-for (let i = 1; i < 126; i++) {
+// Initialize seed data (Rounds 1 up to currentRoundId - 1)
+for (let i = 1; i < currentRoundId; i++) {
   roundsMap.set(String(i), createSettledRound(i));
 }
 // Set initial active round
@@ -136,7 +136,7 @@ function cleanRound(round) {
   return copy;
 }
 
-// API Routes (supports both /v1/... and root /...)
+// API Routes
 
 // 1. GET /rounds/active
 const getActiveHandler = (req, res) => {
@@ -169,10 +169,16 @@ const getRoundsListHandler = (req, res) => {
 
   let startIndex = 0;
   if (cursor) {
-    // Basic decoding support if needed
-    const foundIndex = allRounds.findIndex(r => r.id === cursor);
-    if (foundIndex !== -1) {
-      startIndex = foundIndex + 1;
+    try {
+      // Decode the base64 cursor back to a string ID
+      const decodedCursor = Buffer.from(cursor, 'base64').toString('utf8');
+      
+      const foundIndex = allRounds.findIndex(r => r.id === decodedCursor);
+      if (foundIndex !== -1) {
+        startIndex = foundIndex + 1;
+      }
+    } catch (e) {
+      console.error("Error decoding cursor:", e);
     }
   }
 
