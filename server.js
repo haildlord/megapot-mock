@@ -18,8 +18,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // Configuration
-const ROUND_DURATION_MS = 3 * 60 * 1000; // 3 Minutes
-const SETTLEMENT_DELAY_MS = 20 * 1000;    // 20 seconds
+const ROUND_DURATION_MS = 3 * 60 * 1000; // 5 Minutes
+const SETTLEMENT_DELAY_MS = 20 * 1000;    // 15 seconds
 
 // Set a base chronological anchor. We backdate this so Epoch 1 is already settled 
 // and Epoch 2 is immediately the active epoch on server boot.
